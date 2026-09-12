@@ -1,0 +1,20 @@
+{
+  "corpus_fingerprint": "9f1d0a2997ad7cea5afdf9bb8581087571a081abb9c8bd99f5341273141df52d",
+  "chunks": 3838,
+  "chunking": {
+    "strategy": "heading",
+    "max_tokens": 500,
+    "min_tokens": 80,
+    "overlap_tokens": 80,
+    "contextual_header": false,
+    "fixed_size_tokens": 256
+  },
+  "sparse_enabled": true,
+  "tokenizer": "zh_identifier",
+  "embedding_model": "openai_compat:bge-m3",
+  "retrievers": [
+    "dense",
+    "bm25"
+  ],
+  "fusion": "rrf"
+}

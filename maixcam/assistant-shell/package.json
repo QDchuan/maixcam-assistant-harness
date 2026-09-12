@@ -1,0 +1,32 @@
+{
+  "name": "dsh-maixcam-shell",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MaixCAM 开发助手的领域能力：语料检索、API 符号校验、三个 agent 工具、知识库面板。纯 JavaScript，无构建步骤。",
+  "type": "module",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-renderer",
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ]
+    }
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh-tools": "workspace:^",
+    "@langchain/classic": "^1.0.47",
+    "@langchain/community": "^1.1.29",
+    "@langchain/core": "^1.2.10",
+    "@langchain/openai": "^1.5.12",
+    "langchain": "^1.5.11"
+  }
+}

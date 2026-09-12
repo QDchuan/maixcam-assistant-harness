@@ -1,0 +1,39 @@
+# MaixCAM 开发助手 —— 挂载领域能力包。
+#
+# 只用一条：把**领域能力包**挂进宿主组装 —— 语料检索、API 符号校验、
+# 三个 agent 工具，以及浏览器半边那个「MaixCAM 知识库」面板。
+#
+# **助手的人格与默认 preset 不在这里。** 它们已经在源码里了：
+#
+#   packages/bundle/web-app/cordis.patch.yml   `agent-presets.config`
+#       → default: maixcam-assistant
+#       → roots: <源码树>/maixcam/presets
+#
+# 那个位置才是客户端真正读的「部署默认值」。之前把 default 写在这里（`--patch`）
+# 或者写进 `settings.yaml` 都没用 —— 选择器关闭时，座位解析的是**部署**默认值，
+# 用户设置只在选择器打开时才被解析。这个坑值得记住：
+# **组装正确 ≠ 生效**，读它的那一方在哪里才是关键。
+#
+# 用法（在仓库根目录）：
+#
+#     set DSH_HOME=C:\Users\chuan\.dsh-maixcam
+#     node apps/cli/lib/bin.js --profile maixcam --patch maixcam/app.patch.yml --port 8890
+#
+# 或者直接双击 maixcam\start.cmd。
+
+# 路径必须是绝对的：能力包在源码树里，而 profile 在独立 home 里，
+# 从 profile 出发的相对路径够不到它。加载器把绝对路径当作 `file:` 处理，
+# 并会从该文件向上找到它自己的 package.json —— 浏览器半边的 `dsh.client`
+# 声明就是这样被认出来的。
+- insert:
+    - id: maixcam-shell
+      name: 'C:/Users/chuan/maixcam-assistant/maixcam/assistant-shell/lib/index.js'
+      config:
+        # 语料产物在主体仓库里（教学主线那套 Python 管线产出的）。
+        repoRoot: 'C:/Users/chuan/maixcam-assistant/maixcam'
+        # 前置语义扩展用的 LLM：先让模型把问题拆成若干技术面向，再逐面做向量匹配。
+        # 这一步治的是「向量匹配只会返回最像整题的那一页」。
+        expandBaseUrl: 'https://api.deepseek.com/v1'
+        expandModel: 'deepseek-chat'
+        expandApiKeyRef: 'DEEPSEEK_API_KEY'
+        credentialsFile: 'C:/Users/chuan/.dsh-maixcam/.credentials.yaml'

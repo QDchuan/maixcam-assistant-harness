@@ -1,0 +1,316 @@
+/*
+ * MaixCAM 开发助手 —— 科技风主题层。
+ *
+ * ## 为什么是「覆盖别名层」而不是改上游那 340 行
+ *
+ * 上游的设计系统分两层：`--dsw-static-*` 是**原始色板**，`--dsw-alias-*` 是**语义层**
+ * （背景 / 文字 / 边框 / 品牌 / 交互）。组件只读别名层。
+ * 所以只要把别名层重指一遍，整个应用的观感就变了，而**上游的 CSS 一行都不用改** ——
+ * 这也意味着以后同步上游不会有冲突。
+ *
+ * 品牌色那一档额外直接改了 `--dsw-static-deepseek-*`：那是上游的蓝色家族，
+ * 现在整族换成电光青。它被别名层到处引用，改一处、处处跟着变。
+ *
+ * ## 明暗两套都做成深色
+ *
+ * 上游有 `body`（浅色）与 `body[data-ds-dark-theme]`（深色）两套。
+ * 这里**两套都覆盖成深色科技风** —— 因为这是这个应用的身份，不该取决于用户的明暗偏好。
+ * 用户切换外观时看到的仍是 MaixCAM，只是强调色浓淡略有不同。
+ *
+ * ## 半透明表面
+ *
+ * 面板底色用带 alpha 的深色，让 `body` 上那层网格与辉光透出来一点。
+ * 这是「科技感」最省成本的做法：不动布局、不动组件，只让背景参与进来。
+ */
+
+/* ── 品牌色族：上游的 DeepSeek 蓝 → 电光青 ─────────────────────────────── */
+body,
+body[data-ds-dark-theme] {
+  --dsw-static-deepseek-50: rgb(230, 252, 255);
+  --dsw-static-deepseek-100: rgb(204, 247, 255);
+  --dsw-static-deepseek-200: rgb(163, 238, 252);
+  --dsw-static-deepseek-300: rgb(112, 226, 248);
+  --dsw-static-deepseek-400: rgb(51, 236, 255);
+  --dsw-static-deepseek-450: rgb(20, 226, 250);
+  --dsw-static-deepseek-500: rgb(0, 229, 255);
+  --dsw-static-deepseek-600: rgb(0, 176, 200);
+  --dsw-static-deepseek-800: rgb(8, 74, 88);
+  --dsw-static-deepseek-900: rgb(6, 46, 56);
+}
+
+/* ── 原始中性色阶：整体反转 ──────────────────────────────────────────────
+ *
+ * 这一块是**必须的**，不是锦上添花。
+ *
+ * 只覆盖别名层不够：有些组件（实测是侧栏）直接引用原始色板
+ * `--dsw-static-neutral-bluish-*`，于是主面板已经变暗、侧栏还是白底浅灰字 ——
+ * 文字几乎看不见。这就是「只改语义层」漏掉的那一类。
+ *
+ * 反转规则：**低序号 = 暗表面，高序号 = 亮文字**（与上游的用法一致，只是方向反过来）。
+ * 这样任何引用原始色板的组件都会自动落到深色体系里，不需要逐个去改。
+ */
+body,
+body[data-ds-dark-theme] {
+  --dsw-static-neutral-bluish-00: rgb(10, 15, 20);
+  --dsw-static-neutral-bluish-50: rgb(14, 20, 26);
+  --dsw-static-neutral-bluish-60: rgb(16, 24, 31);
+  --dsw-static-neutral-bluish-75: rgb(20, 29, 37);
+  --dsw-static-neutral-bluish-100: rgb(24, 35, 44);
+  --dsw-static-neutral-bluish-150: rgb(30, 43, 53);
+  --dsw-static-neutral-bluish-200: rgb(38, 54, 65);
+  --dsw-static-neutral-bluish-250: rgb(48, 67, 80);
+  --dsw-static-neutral-bluish-300: rgb(60, 83, 98);
+  --dsw-static-neutral-bluish-400: rgb(110, 138, 152);
+  --dsw-static-neutral-bluish-500: rgb(140, 168, 182);
+  --dsw-static-neutral-bluish-550: rgb(160, 186, 198);
+  --dsw-static-neutral-bluish-600: rgb(180, 204, 214);
+  --dsw-static-neutral-bluish-700: rgb(200, 220, 228);
+  --dsw-static-neutral-bluish-750: rgb(212, 230, 237);
+  --dsw-static-neutral-bluish-950: rgb(232, 246, 251);
+  --dsw-static-neutral-bluish-1000: rgb(240, 250, 253);
+
+  /* 纯中性色同理：上游用它画分隔线与浅底 */
+  --dsw-static-neutral-00: rgb(12, 18, 24);
+  --dsw-static-neutral-50: rgb(16, 23, 30);
+  --dsw-static-neutral-100: rgb(22, 31, 39);
+  --dsw-static-neutral-150: rgb(27, 37, 46);
+  --dsw-static-neutral-200: rgb(33, 45, 55);
+  --dsw-static-neutral-250: rgb(40, 54, 65);
+  --dsw-static-neutral-300: rgb(48, 64, 76);
+  --dsw-static-neutral-1000: rgb(240, 250, 253);
+}
+
+/* ── 深色科技风：把别名层整体重指 ───────────────────────────────────────── */
+body,
+body[data-ds-dark-theme] {
+  /* 表面：半透明深色，让底部网格透出来 */
+  --dsw-alias-bg-base: rgba(7, 11, 16, 0.52);
+  --dsw-alias-bg-layer-1: rgba(11, 17, 23, 0.58);
+  --dsw-alias-bg-layer-2: rgba(16, 26, 34, 0.68);
+  --dsw-alias-bg-layer-3: rgba(22, 35, 44, 0.78);
+  --dsw-alias-bg-overlay: rgba(10, 16, 22, 0.88);
+  --dsw-alias-bg-module-platform: rgba(0, 229, 255, 0.06);
+  --dsw-alias-bg-multi-select: rgba(0, 229, 255, 0.1);
+  --dsw-alias-bg-skeleton: rgba(0, 229, 255, 0.06);
+  --dsw-alias-bg-mask-1: rgba(3, 6, 10, 0.5);
+  --dsw-alias-bg-mask-2: rgba(3, 6, 10, 0.32);
+  --dsw-alias-bg-mask-3: rgba(3, 6, 10, 0.68);
+  --dsw-alias-bg-mask-photo: rgba(3, 6, 10, 0.9);
+  --dsw-alias-bg-mask-drop: rgba(0, 229, 255, 0.12);
+
+  /* 边框：全部带青色偏置，越靠上越亮 */
+  --dsw-alias-border-inverted: rgba(0, 229, 255, 0);
+  --dsw-alias-border-inverted2: rgba(0, 229, 255, 0);
+  --dsw-alias-border-l1: rgba(0, 229, 255, 0.07);
+  --dsw-alias-border-l2: rgba(0, 229, 255, 0.13);
+  --dsw-alias-border-l2-darkmode-thin: rgba(0, 229, 255, 0.1);
+  --dsw-alias-border-l3: rgba(0, 229, 255, 0.2);
+  --dsw-alias-border-l4: rgba(0, 229, 255, 0.32);
+
+  /* 文字：从近白到青灰，保持足够对比 */
+  --dsw-alias-label-primary: rgb(230, 246, 251);
+  --dsw-alias-label-primary-foreground: rgb(6, 10, 14);
+  /* 「反差表面上的文字」。上游浅色主题里默认文字是黑的，所以它是白的，专给深色气泡用。
+     我把面板/气泡也改成了深色，这个令牌就必须**保持亮的** —— 之前设成近黑，
+     结果是深底 + 深字，用户自己发的话完全看不见。 */
+  --dsw-alias-label-primary-inverted: rgb(240, 250, 253);
+  --dsw-alias-label-primary-dimmed: rgb(190, 214, 224);
+  --dsw-alias-label-primary-bluish: rgb(120, 226, 245);
+  --dsw-alias-label-secondary: rgb(160, 186, 198);
+  --dsw-alias-label-tertiary: rgb(122, 148, 160);
+  --dsw-alias-label-caption: rgb(104, 130, 142);
+  --dsw-alias-label-dimmed: rgb(78, 100, 112);
+
+  /* 品牌与可交互 */
+  --dsw-alias-brand-primary: rgb(0, 229, 255);
+  --dsw-alias-brand-primary-new-colorprimary-new-color: rgb(0, 229, 255);
+  --dsw-alias-brand-primary-invert: rgb(6, 10, 14);
+  --dsw-alias-brand-text: rgb(230, 246, 251);
+  --dsw-alias-link: rgb(77, 226, 255);
+
+  --dsw-alias-button-primary-fill: rgb(0, 229, 255);
+  --dsw-alias-button-primary-hover: rgb(51, 236, 255);
+  --dsw-alias-button-primary-dimmed: rgba(0, 229, 255, 0.24);
+  --dsw-alias-button-info-fill: rgba(0, 229, 255, 0.16);
+  --dsw-alias-button-info-hover: rgba(0, 229, 255, 0.26);
+  --dsw-alias-button-elevated-fill: rgba(16, 26, 34, 0.92);
+  --dsw-alias-button-floating-fill: rgba(16, 26, 34, 0.92);
+  --dsw-alias-button-floating-hover: rgba(0, 229, 255, 0.14);
+  --dsw-alias-button-contrast-fill: rgb(0, 229, 255);
+  --dsw-alias-button-ghost-active-fill: rgba(0, 229, 255, 0.14);
+  --dsw-alias-button-ghost-active-hover: rgba(0, 229, 255, 0.2);
+  --dsw-alias-button-ghost-active-border: rgba(0, 229, 255, 0.45);
+  --dsw-alias-button-tool-bar-fill: rgba(16, 26, 34, 0.86);
+  --dsw-alias-button-tool-bar-fill-invisible: rgba(6, 10, 14, 0.4);
+  --dsw-alias-button-tool-bar-hover: rgba(0, 229, 255, 0.18);
+
+  /* 悬停 / 选中 */
+  --dsw-alias-interactive-bg-hover: rgba(0, 229, 255, 0.08);
+  --dsw-alias-interactive-bg-hover-solid: rgba(0, 229, 255, 0.12);
+  --dsw-alias-interactive-bg-hover-accent: rgba(0, 229, 255, 0.16);
+  --dsw-alias-interactive-bg-active: rgba(0, 229, 255, 0.16);
+  --dsw-alias-interactive-bg-hover-danger: rgba(255, 92, 92, 0.12);
+
+  /* Markdown 与代码：比表面再深一档，像终端 */
+  --dsw-alias-markdown-inline-code: rgba(0, 229, 255, 0.08);
+  --dsw-alias-markdown-code-block: rgba(4, 8, 12, 0.6);
+  --dsw-alias-markdown-code-block-banner: rgba(0, 229, 255, 0.06);
+  --dsw-alias-markdown-code-segment-selected: rgba(0, 229, 255, 0.16);
+  --dsw-alias-markdown-code-segment-unselected: rgba(4, 8, 12, 0.5);
+  --dsw-alias-markdown-citation: rgba(0, 229, 255, 0.1);
+}
+
+/* ── 全局质感：背景插画（虚化 + 缓慢漂移）+ 网格辉光 ─────────────────────
+ *
+ * 背景图放在 `::before`，用 `inset: -6%` 外扩一圈 —— 虚化会把边缘糊开，
+ * 不外扩就会在四边看到一圈透明的亮边。
+ *
+ * 图层顺序（从后到前）：
+ *   body 底色 → ::before 插画（blur + 动画）→ ::after 暗色压层 → 应用本体
+ * 压层是必须的：插画很亮，不压一层的话上面的文字读不了。
+ * 应用自己的面板是半透明的，所以插画能透出来 —— 这正是想要的效果。
+ */
+body {
+  background-color: #05080c;
+  background-image:
+    radial-gradient(1100px 620px at 12% -8%, rgba(0, 229, 255, 0.10), transparent 62%),
+    radial-gradient(900px 520px at 102% 4%, rgba(0, 132, 255, 0.08), transparent 58%);
+  background-attachment: fixed, fixed;
+}
+
+/* 插画本体：虚化 + 缓慢漂移。 */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: url('/bg.jpg') center / cover no-repeat;
+  /* 不做虚化 —— 糊了就认不出画的是什么。只压一点亮度，让上面的字仍读得清。 */
+  filter: brightness(0.86) saturate(1.02);
+  transform-origin: 50% 50%;
+  animation: maixcam-bg-drift 72s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* 暗色压层：保住文字对比度。带一点青，和主题一致。 */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(900px 520px at 20% 0%, rgba(0, 229, 255, 0.10), transparent 60%),
+    linear-gradient(180deg, rgba(4, 8, 12, 0.40) 0%, rgba(4, 8, 12, 0.52) 55%, rgba(4, 8, 12, 0.66) 100%);
+  pointer-events: none;
+}
+
+/* 应用本体必须排在那两个 fixed 伪元素**之上** ——
+   它们是定位元素（z-index:0），而 #root 是静态流，不给它抬一层就会被盖住。 */
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes maixcam-bg-drift {
+  0%   { transform: scale(1.04) translate3d(0, 0, 0); }
+  33%  { transform: scale(1.10) translate3d(-1.4%, -1.0%, 0); }
+  66%  { transform: scale(1.07) translate3d(1.2%, 0.8%, 0); }
+  100% { transform: scale(1.04) translate3d(0, 0, 0); }
+}
+
+/* 尊重系统的「减少动态效果」偏好 —— 动画关掉，插画留着。 */
+@media (prefers-reduced-motion: reduce) {
+  body::before { animation: none; }
+}
+
+/* ── 上游的蓝色家族 → 青色 ──────────────────────────────────────────────
+ *
+ * 实测：正文里的链接走的是 `--dsw-static-blue-*` 而不是 `--dsw-alias-link`，
+ * 深蓝落在深底上对比度不够（知识库结果卡片里的 wiki 链接就是这一处）。
+ * 把整族一起换掉，和品牌青统一。
+ */
+body,
+body[data-ds-dark-theme] {
+  --dsw-static-blue-50: rgb(230, 252, 255);
+  --dsw-static-blue-75: rgba(0, 229, 255, 0.1);
+  --dsw-static-blue-50p: rgba(0, 229, 255, 0.12);
+  --dsw-static-blue-100: rgba(0, 229, 255, 0.16);
+  --dsw-static-blue-300: rgb(140, 236, 250);
+  --dsw-static-blue-400: rgb(96, 226, 248);
+  --dsw-static-blue-450: rgb(66, 220, 245);
+  --dsw-static-blue-500: rgb(0, 229, 255);
+  --dsw-static-blue-600: rgb(0, 196, 220);
+  --dsw-static-blue-800: rgb(8, 74, 88);
+  --dsw-static-blue-900: rgb(6, 46, 56);
+  --dsw-static-blue-950: rgb(6, 32, 40);
+}
+
+/* 选中：青色高亮，和上游的蓝色区分开 */
+::selection {
+  background: rgba(0, 229, 255, 0.28);
+  color: rgb(240, 253, 255);
+}
+
+/* 焦点环：统一成青色，键盘可达性不降级 */
+:focus-visible {
+  outline: 2px solid rgba(0, 229, 255, 0.7);
+  outline-offset: 2px;
+}
+
+/* 滚动条：细、暗、悬停才亮 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 229, 255, 0.22) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(0, 229, 255, 0.16);
+  border: 2px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 229, 255, 0.34);
+  background-clip: content-box;
+}
+
+/* 数字读数用等宽字形：版本号、耗时、token 数在一列里要对齐 */
+[class*='token'], [class*='meter'], [class*='stats'], [class*='cost'], code, kbd, pre, samp {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 浅色调强调色：整族转暗 ────────────────────────────────────────────────
+ *
+ * 这一类是我上一轮漏掉的，而且是**用户直接踩到的那一个**：
+ * 用户消息气泡的底色就是 `--dsw-static-blue-50`（实测 rgb(230,252,255)），
+ * 我只改了中性色阶（neutral-bluish），强调色的浅色调原样留着 ——
+ * 于是气泡是白的、字是亮的（label-primary），一句话完全看不见。
+ *
+ * 规则同上：**浅色调在深色主题里必须变暗**，因为它们的用途是「淡色底」，
+ * 而淡色底上现在放的是亮字。
+ */
+body,
+body[data-ds-dark-theme] {
+  --dsw-static-blue-50: rgb(14, 40, 50);
+  --dsw-static-blue-75: rgba(0, 229, 255, 0.10);
+  --dsw-static-blue-50p: rgba(0, 229, 255, 0.12);
+  --dsw-static-blue-100: rgba(0, 229, 255, 0.16);
+  --dsw-static-deepseek-50: rgb(14, 40, 50);
+  --dsw-static-deepseek-100: rgb(18, 48, 58);
+  --dsw-static-deepseek-200: rgb(22, 58, 70);
+  --dsw-static-deepseek-300: rgb(96, 200, 220);
+  --dsw-static-amber-100: rgb(58, 44, 22);
+  --dsw-static-green-100: rgb(20, 52, 36);
+  --dsw-static-neutral-50: rgb(16, 23, 30);
+  --dsw-static-neutral-100: rgb(22, 31, 39);
+}

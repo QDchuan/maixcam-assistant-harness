@@ -1,0 +1,16 @@
+{
+  "id": "/",
+  "name": "MaixCAM 开发助手",
+  "short_name": "MaixCAM",
+  "start_url": "/",
+  "scope": "/",
+  "display": "fullscreen",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
