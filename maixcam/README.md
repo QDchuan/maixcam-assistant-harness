@@ -93,3 +93,97 @@ maixcam/                                应用自己的东西（新）
 - **接入 LangChain 版检索**，或明确决定不接。
 - **评测闭环**：教学主线那套 eval（recall / MRR / citation precision）**从没在这个分支跑过** ——
   检索的每一轮改动都是凭手感调的。这是最该补的一块。
+
+---
+
+# 怎么改这个应用
+
+## 前端主题：只动令牌，不动上游 CSS
+
+`packages/client/ui-theme/src/styles/maixcam.css` 是唯一的换肤入口。
+上游的设计系统分两层：
+
+| 层 | 例子 | 谁在读 |
+| --- | --- | --- |
+| **原始色板** | `--dsw-static-deepseek-500` | 被语义层引用 |
+| **语义层** | `--dsw-alias-label-primary`、`--dsw-alias-bg-base` | **组件只读这一层** |
+
+所以换肤的主杠杆是覆盖**语义层** —— 上游那 340 行 `design-platform.css` 一行都不用改，
+以后同步上游不会冲突。品牌色那一档额外直接改 `--dsw-static-deepseek-*` 整族，一处改、处处跟着变。
+
+### 两个踩过的坑（都会静默失效）
+
+**坑一：只改语义层，侧栏还是白的。**
+
+我把 `--dsw-alias-*` 全换成深色之后，主面板黑了，**侧栏却仍是白底浅灰字，几乎看不见** ——
+因为有些组件（实测是侧栏）**直接引用原始色板** `--dsw-static-neutral-bluish-*`，绕过了语义层。
+
+修法：**把原始中性色阶整族反转**（低序号 = 暗表面，高序号 = 亮文字；与上游用法一致，只是方向反过来）。
+反转之后任何引用原始色板的组件都自动落进深色体系，不用逐个去改。
+
+**坑二：用户自己发的话完全看不见。**
+
+用户消息气泡的底色实测是 `rgb(230,252,255)` —— 正是 `--dsw-static-blue-50`。
+我只反转了中性色阶，**强调色的浅色调一个没动**，于是气泡是白的、字却跟着
+`--dsw-alias-label-primary` 变成了亮的 —— **白底浅字**。
+
+同一类漏掉的还有 `deepseek-100/200`、`amber-100`、`green-100`。
+规则：**深色主题里，浅色调必须整族转暗**，因为它们的用途是「淡色底」，而淡色底上现在放的是亮字。
+
+### 怎么自己扫出这类漏网的亮面
+
+肉眼找一个漏改的令牌很费劲。用一段脚本扫全页面，**只要还有一块亮着的背景就报出来**：
+
+```js
+const isLight = (c) => { const m = /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/.exec(c)
+  if (!m) return false; const a = m[4] === undefined ? 1 : Number(m[4]); if (a < 0.5) return false
+  return +m[1] > 170 && +m[2] > 170 && +m[3] > 170 }
+
+;[...document.querySelectorAll('*')]
+  .filter((e) => isLight(getComputedStyle(e).backgroundColor))
+  .map((e) => ({ cls: e.className.toString().slice(0, 50), bg: getComputedStyle(e).backgroundColor }))
+```
+
+改完一轮跑一次，返回 `0` 才算干净。
+
+### 背景插画
+
+`apps/web/public/bg.jpg` + `maixcam.css` 里的 `body::before`。三个必须配的点：
+
+1. **不外扩也行，但漂移的 `scale` 最小要 ≥ 1** —— 一旦开 `filter: blur()`，边缘会糊开，
+   那时必须 `inset: -6%` 外扩，否则四边出现透明亮边。现在不虚化（糊了认不出画的是什么），
+   所以 `inset: 0` 就够。
+2. **`body::after` 必须有** —— 插画很亮，不压一层暗色，上面的字读不了。
+3. **`#root` 必须 `position: relative; z-index: 1`** —— 那两个伪元素是 `position: fixed`，
+   而 `#root` 是静态流，**不抬层就会被背景整个盖住**（页面全黑）。
+
+## 加一个 Skill
+
+放到 `maixcam/skills/<name>/SKILL.md`，目录 bundle 形式，YAML frontmatter 必填 `name` 与 `description`。
+preset 里 `skill-filesystem` 的 `customSkillDirs` 已指向这个目录，**新增/改名/删除都无需重启**。
+
+`description` 很关键：它决定 agent 什么时候会去加载这个 skill。
+写清「什么情况下用它」，不要写「这个 skill 是什么」。
+
+## 接口在哪
+
+| 位置 | 是什么 |
+| --- | --- |
+| `lib/index.js` 的 `search()` | 检索唯一入口，**路由和 agent 工具共用**它 —— 所以界面看到的和模型看到的一定是同一件事 |
+| `/api/maixcam/status` | 语料与索引状态（切片数、符号数、指纹、嵌入模型） |
+| `/api/maixcam/search` | `?q=&k=&aspects=`，返回命中与模块覆盖度 |
+| `/api/maixcam/symbol` | `?name=`，符号精确签名 + 白名单核对 |
+| `lib/tools.js` | 三个 agent 工具的定义与**渲染** —— 模型看到的文本在这里成型 |
+| `lib/client.js` | 浏览器半边：品牌座位 + 知识库面板。**手写的 lazy-CJS bundle，改完不用构建**，但宿主进程要重启 |
+
+## 两条硬约束
+
+**一、语料与索引对不上时，拒绝服务而不是降级。**
+向量是按 `chunk_id` 顺序存的，两份产物一旦错位，检索会安静地返回牛头不对马嘴的片段 ——
+不报错，只有错答案。所以 `corpus.js` 加载时逐条核对，不一致就抛错、
+`/api/maixcam/search` 返 503 并说明原因，**不返回空结果**。
+
+**二、工具失败要说清原因，不要返回空列表。**
+空结果会被模型读成「知识库里没有」，然后继续凭记忆回答 —— 那正是这个项目要治的病。
+所以检索不可用时抛「知识库不可用：<原因>」。
+

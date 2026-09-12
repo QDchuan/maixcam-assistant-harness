@@ -1,75 +1,132 @@
-# DeepSeek Harness
+# MaixCAM 开发助手 · Harness 版本
 
-English | [中文](README.zh.md)
+> 这是同一个 MaixCAM 助手的**三种形态之一**。三种形态是**彼此独立、互不合并**的三个版本。
 
-DeepSeek Harness (`dsh`) is an open-source agent harness developed by [DeepSeek AI](https://deepseek.com).
+| 版本 | 仓库 | 讲什么 | 状态 |
+| --- | --- | --- | --- |
+| **教学版** | [`maixcam-rag-assistant`](https://github.com/QDchuan/maixcam-rag-assistant) | **从零讲原理**：语料怎么切、检索怎么算、防幻觉怎么校验、怎么评测 | 已完成 |
+| **Harness 版本**（本仓库） | `maixcam-assistant-harness` | **应用价值**：以成熟底座做产品 | 进行中 |
+| **Skill 版本** | — | **普及**：最轻形态，塞进任何桌面 Agent 即用 | 未开始 |
 
-It is built on an **everything-is-a-plugin** architecture and powered by [Cordis](https://github.com/cordiverse/cordis), whose design is described in [_A Programming Paradigm for Spatiotemporal Composability_](https://arxiv.org/abs/2608.25512).
+学原理去教学版；想直接有个能用的助手，用这个。
 
-Documentation: [https://deepseek-harness.github.io/deepseek-harness/](https://deepseek-harness.github.io/deepseek-harness/)
+---
 
-## Developer preview
+## 它治什么病
 
-DeepSeek Harness is in _developer preview_ and iterating rapidly. **THERE WILL BE COMPATIBILITY-BREAKING CHANGES.**
+起点是一句很具体的话：
 
-Review the [safety notice](SAFETY.md) before running the project.
+> 当年打电赛的时候，MaixCAM 比较新，模型训练数据里几乎没有它相关的代码，
+> 所以幻觉很严重，**写不出能用的代码**。
 
-## Run
+所以这个助手的核心不是「会聊天」，而是**答案有据可查**：
 
-### Run from `npm`
+- 先检索本地知识库（MaixPy 教程 + API 文档，3838 片 / 1898 个 API 符号），**再**作答；
+- 写进代码的每一个 API 名字，都用 `lookup_api` 核对过精确签名；
+- 交付代码前，整段过一遍 `check_api_usage`（机器判，不是模型说了算）；
+- 查不到就直说「本地知识库里没有这部分」，**不用看起来合理的代码把空白填上**。
 
-Install `Node.js`, then run:
+## 跑起来
 
-```sh
-npx @deepseek-ai/dsh web
+```bat
+maixcam\start.cmd          :: 起在 8890，并自动打开浏览器
+maixcam\start.cmd 9001     :: 换端口
 ```
 
-The command starts the Web UI at `http://127.0.0.1:3080` by default and opens it in the default browser for a local launch. An SSH launch only prints the host URL because the SSH client or editor owns the local forwarded address. Pass `--no-open` to run the server without opening a browser. See [Web UI guide](docs/user/guide/index.md).
+它用**自己的 home**：`C:\Users\chuan\.dsh-maixcam` —— 会话、工作区、设置、凭据、
+preset 全部与机器上其它 dsh 安装互不相干。
 
-### Run from source
+等价的手工命令：
 
-To run from a repository checkout:
-
-```sh
-git clone https://github.com/deepseek-ai/deepseek-harness.git
-cd deepseek-harness
-pnpm install
-pnpm run build
-pnpm dsh web
+```bat
+set DSH_HOME=C:\Users\chuan\.dsh-maixcam
+node apps/cli/lib/bin.js --profile maixcam --patch maixcam\app.patch.yml --port 8890
 ```
 
-`pnpm run build` prepares the repository artifacts. `pnpm dsh web` uses those built artifacts without rebuilding.
+> **每次启动 token 都会变，旧 URL 会失效。** 用 `start.cmd`，别存 URL。
 
-## Community and support
+## 它由三块组成
 
-- Submit feedback or bug reports through [GitHub Discussions](https://github.com/deepseek-ai/deepseek-harness/discussions).
-- Add the [`dsh-plugin`](https://github.com/topics/dsh-plugin) topic to your plugin repository for discoverability.
-- Join <a href="https://discord.gg/Ycq5dCaS4">DeepSeek Harness Discord community</a>.
+| 块 | 在哪 | 是什么 |
+| --- | --- | --- |
+| **前端（壳）** | `packages/client/ui-theme/src/styles/maixcam.css` 等 | 深色科技风主题 + 品牌。**改的是令牌层，上游 CSS 一行没动** |
+| **知识库能力** | `maixcam/assistant-shell/` | 语料加载与校验、混合检索、符号白名单、三个 agent 工具、知识库面板 |
+| **检索纪律** | `maixcam/skills/maixcam-kb/SKILL.md` | 把「查到什么程度才算够」写成 Skill，交给 agent |
 
-## Contributing
+## 关于检索：我手写过三版，每一版都更差
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+这一段值得单独讲，因为它是这个项目最贵的一课。
 
-## Development
+**第一版**：自己写嵌入 + 余弦 top-k。
+**第二版**：加了自己的 BM25、自写分词器、自己的 RRF 融合。
+**第三版**：让检索工具自己去调 LLM 扩查询、自己拍相关性阈值、自己决定拆几个面。
 
-Start with the [development guide](docs/development.md) and [architecture documentation](docs/architecture.md).
+三版都更差，根因是同一个：
 
-For agents, follow [AGENTS.md](AGENTS.md).
+> **我把 agent 该做的事塞进了检索工具里。**
 
-## Citation
+工具不可能知道 **agent 看完成果之后还缺什么**。用一个工具调用去模拟「查 → 读 →
+发现不认识的函数 → 再查」这个循环，只会又贵又差。
 
-```bibtex
-@misc{deepseek-harness2026,
-  title={DeepSeek Harness: Everything is a Plugin},
-  author={DeepSeek-AI},
-  year={2026},
-  publisher={GitHub},
-  howpublished={\url{https://github.com/deepseek-ai/deepseek-harness}},
-}
+**正确的分工**：
+
+- **检索保持笨而可靠** —— 一问 → 一批文章 + 出处，不带任何"聪明"的推理；
+- **循环交给 agent** —— `maixcam-kb` 这个 Skill 规定查到什么程度才算够。
+
+配套的实测证据（同一个问题「设计一个二维云台人脸跟随系统」）：
+
+| | 结果 |
+| --- | --- |
+| 只有整句查询 | 命中 6 条切片，**其中 5 条来自同一篇文档** |
+| 拆成子系统后 | 舵机 PWM、串口 UART、引脚 pinmap、供电各自拿到证据 |
+
+## 改过上游哪些地方
+
+```
+apps/web/index.html                       标题 + lang=zh-CN
+apps/web/public/favicon.svg               鲸鱼 → MaixCAM 摄像头模组
+apps/web/public/manifest.webmanifest      name / short_name
+apps/web/public/bg.jpg                    背景插画
+packages/bundle/web-app/cordis.patch.yml  默认 preset → maixcam-assistant
+packages/client/locale/…/zh.ts, en.ts     brand.localBuild → MaixCAM 开发助手
+packages/client/ui-sidebar/…/SidebarRoot.tsx        品牌标记 fallback
+packages/client/ui-conversation/…/EmptyHero.tsx     首屏动画鲸鱼 → MaixCamHeroMark
+packages/client/ui-settings-models/…/locales.ts     欢迎文案
+packages/client/ui-theme/src/client/styles.ts       挂上 maixcam.css
+packages/client/ui-theme/src/styles/maixcam.css     深色科技风主题（新）
+pnpm-workspace.yaml                       加 maixcam/assistant-shell
+maixcam/                                  应用自己的东西（新）
 ```
 
-## License
+主题那一层的做法值得一提：上游的设计系统分**原始色板**（`--dsw-static-*`）与
+**语义层**（`--dsw-alias-*`），组件只读语义层。所以整个换肤只需要覆盖令牌，
+**上游那 340 行 CSS 一行没改** —— 以后同步上游不会有冲突。
 
-[MIT](LICENSE)
+踩过的两个坑写在 `maixcam/README.md` 里：只改语义层时侧栏仍是白底（要连原始中性色阶一起反转）；
+用户消息气泡的底色是 `--dsw-static-blue-50`，漏掉它会变成白底浅字、**用户自己发的话完全看不见**。
 
-Third-party dependencies and their licenses are disclosed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+## 从源码构建
+
+```bash
+pnpm install --frozen-lockfile
+pnpm run build              # 宿主 + 客户端 + Web 前端
+pnpm run build:lib:client   # 只改了客户端半边（快）
+pnpm run build:web          # 只改了 index.html / 静态资源
+```
+
+## 还没做的
+
+- **资料库浏览视图** —— 像 ima 那样在 Web 端按模块浏览全部文档。需要一条
+  `/api/maixcam/library` 路由 + 面板里的一块浏览界面。
+- **评测闭环** —— 教学主线那套 eval（recall / MRR / citation precision）
+  **从没在这个分支跑过**。检索的每一轮改动都是凭手感调的，这是最该补的一块。
+- **Skill 版本** —— 三种形态里的第三种，一行没写。
+
+## 上游与许可
+
+基于 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（MIT）
+`c291e79` 构建。上游原始说明保留在 [`README.upstream.md`](./README.upstream.md)
+与 [`README.upstream.zh.md`](./README.upstream.zh.md)。
+
+本仓库为私有仓库，且**当前是无历史的快照**（见下）；上游许可与第三方声明见
+[`LICENSE`](./LICENSE) 与 [`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md)。
