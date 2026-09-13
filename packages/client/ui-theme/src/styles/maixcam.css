@@ -186,7 +186,8 @@ body::before {
   z-index: 0;
   background: url('/bg.jpg') center / cover no-repeat;
   /* 不做虚化 —— 糊了就认不出画的是什么。只压一点亮度，让上面的字仍读得清。 */
-  filter: brightness(0.86) saturate(1.02);
+  /* 不压亮度 —— 压了就不清晰。压暗交给下面那层压层去做。 */
+  filter: brightness(1.02) saturate(1.06) contrast(1.02);
   transform-origin: 50% 50%;
   animation: maixcam-bg-drift 72s ease-in-out infinite;
   pointer-events: none;
@@ -198,9 +199,12 @@ body::after {
   position: fixed;
   inset: 0;
   z-index: 0;
+  /* 压层改成中间几乎不压、四边压 —— 画面主体清楚，文字所在的面板自己有底色。
+     之前是均匀压 0.40~0.66，整张画都被蒙了一层灰。 */
   background:
+    radial-gradient(140% 120% at 50% 38%, rgba(4, 8, 12, 0) 28%, rgba(4, 8, 12, 0.44) 100%),
     radial-gradient(900px 520px at 20% 0%, rgba(0, 229, 255, 0.10), transparent 60%),
-    linear-gradient(180deg, rgba(4, 8, 12, 0.40) 0%, rgba(4, 8, 12, 0.52) 55%, rgba(4, 8, 12, 0.66) 100%);
+    linear-gradient(180deg, rgba(4, 8, 12, 0.16) 0%, rgba(4, 8, 12, 0.24) 55%, rgba(4, 8, 12, 0.36) 100%);
   pointer-events: none;
 }
 
