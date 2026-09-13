@@ -30,7 +30,8 @@ $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path   # <根>\maixcam
 $AppRoot   = Split-Path -Parent $ScriptDir                     # <根>
 $Home_     = Join-Path $env:USERPROFILE '.dsh-maixcam'
 $Launcher  = Join-Path $ScriptDir 'launch.vbs'
-$Icon      = Join-Path $ScriptDir 'maixcam.ico'
+$IconHash  = (Get-FileHash (Join-Path $AppRoot 'apps\web\public\favicon.svg') -Algorithm SHA256).Hash.Substring(0,8).ToLower()
+$Icon      = Join-Path $ScriptDir "maixcam-$IconHash.ico"
 $Entry     = Join-Path $AppRoot 'apps\cli\lib\bin.js'
 
 Write-Host ''

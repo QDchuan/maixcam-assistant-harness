@@ -205,3 +205,22 @@ maixcam\start.cmd          前台启动，带控制台窗口，调试时用
 **图标是怎么来的**：用无头 Chrome/Edge 把 `favicon.svg` 渲染成 256×256 PNG，
 再套一层 ICO 容器（ICO 允许直接内嵌 PNG，Vista 以后都支持）。
 所以改 favicon 之后删掉 `maixcam.ico` 重跑安装，图标就跟着换。
+### 图标为什么不叫 maixcam.ico
+
+**因为 Windows 的图标缓存是按文件路径做键的。**
+
+踩过一次：改好了图标内容，桌面还是画旧的那张。原因是路径 `maixcam.ico` 没变，
+缓存就继续用旧的。当时的建议是「重启 explorer」——**那是个烂建议**，不该让用户为了看一个新图标去重启系统组件。
+
+正确做法是让**文件名跟着内容走**：
+
+```powershell
+$IconHash = (Get-FileHash <favicon.svg> -Algorithm SHA256).Hash.Substring(0,8).ToLower()
+$Icon     = "maixcam-$IconHash.ico"     # 例：maixcam-b0f4f38d.ico
+```
+
+内容一变、文件名就变、缓存键自然失效 —— **不需要重启任何东西**。
+`install.ps1` 已经这么做了；生成之后再用 `ie4uinit.exe -show` 催一下 shell 即可。
+
+> 这条教训比图标本身重要：**遇到「改了不生效」，先想是不是有个按旧键缓存的东西，
+> 而不是让用户去重启。** 重启是掩盖问题，不是解决问题。
