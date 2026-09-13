@@ -134,9 +134,25 @@ if (-not (Test-Path $Icon)) {
     if ($browser -and (Test-Path $svg)) {
         $png = Join-Path $env:TEMP 'maixcam-icon.png'
         try {
+            # 不能直接把 .svg 交给 Chrome 截图：favicon.svg 的根元素写着
+            # width="24" height="24"，Chrome 就按 24px 画，而画布是 256 ——
+            # 结果是左上角一个小点、其余全空，Windows 画出来就是「图标对不上」。
+            # 所以先拼一个 HTML，把 svg 的固定尺寸去掉、用 CSS 撑满画布。
+            $inline = (Get-Content $svg -Raw) `
+                -replace '(?s)<!--.*?-->', '' `
+                -replace '<svg([^>]*?)\swidth="[^"]*"', '<svg$1' `
+                -replace '<svg([^>]*?)\sheight="[^"]*"', '<svg$1'
+            $html = Join-Path $env:TEMP 'maixcam-icon.html'
+            @"
+<!doctype html><meta charset="utf-8">
+<style>html,body{margin:0;padding:0;background:transparent;overflow:hidden}
+svg{width:256px;height:256px;display:block}</style>
+$inline
+"@ | Set-Content -LiteralPath $html -Encoding utf8
+
             & $browser --headless --disable-gpu --no-sandbox --hide-scrollbars `
                 --default-background-color=00000000 --window-size=256,256 `
-                --screenshot="$png" "file:///$($svg -replace '\\','/')" 2>$null | Out-Null
+                --screenshot="$png" "file:///$($html -replace '\\','/')" 2>$null | Out-Null
             if (Test-Path $png) {
                 # ICO 允许直接内嵌 PNG（Windows Vista+）。结构：6 字节头 + 16 字节目录项 + PNG。
                 $bytes = [System.IO.File]::ReadAllBytes($png)
