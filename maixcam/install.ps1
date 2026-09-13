@@ -30,7 +30,7 @@ $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path   # <根>\maixcam
 $AppRoot   = Split-Path -Parent $ScriptDir                     # <根>
 $Home_     = Join-Path $env:USERPROFILE '.dsh-maixcam'
 $Launcher  = Join-Path $ScriptDir 'launch.ps1'
-$IconHash  = (Get-FileHash (Join-Path $AppRoot 'apps\web\public\favicon.svg') -Algorithm SHA256).Hash.Substring(0,8).ToLower()
+$IconHash  = (Get-FileHash (Join-Path $ScriptDir 'launcher-icon.svg') -Algorithm SHA256).Hash.Substring(0,8).ToLower()
 $Icon      = Join-Path $ScriptDir "maixcam-$IconHash.ico"
 $Entry     = Join-Path $AppRoot 'apps\cli\lib\bin.js'
 
@@ -122,9 +122,10 @@ if (-not (Test-Path $cred)) {
 # ── 4. 图标与快捷方式 ───────────────────────────────────────────────────────
 Head '建立启动器'
 
-# 4a. 从 favicon.svg 生成 .ico（用无头 Chrome/Edge 渲染成 PNG，再套 ICO 容器）
+# 4a. 从 launcher-icon.svg 生成 .ico（无头 Chrome/Edge 渲染成 PNG，再套 ICO 容器）
 if (-not (Test-Path $Icon)) {
-    $svg = Join-Path $AppRoot 'apps\web\public\favicon.svg'
+    # 启动器图标用自己那份，不用应用内的 favicon（那个是上游的鲸鱼）。
+    $svg = Join-Path $ScriptDir 'launcher-icon.svg'
     $browser = @(
         "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
         "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe",
@@ -135,10 +136,10 @@ if (-not (Test-Path $Icon)) {
     if ($browser -and (Test-Path $svg)) {
         $png = Join-Path $env:TEMP 'maixcam-icon.png'
         try {
-            # 不能直接把 .svg 交给 Chrome 截图：favicon.svg 的根元素写着
-            # width="24" height="24"，Chrome 就按 24px 画，而画布是 256 ——
-            # 结果是左上角一个小点、其余全空，Windows 画出来就是「图标对不上」。
-            # 所以先拼一个 HTML，把 svg 的固定尺寸去掉、用 CSS 撑满画布。
+            # 不能直接把 .svg 交给 Chrome 截图：这份 svg 的根元素写着 viewBox
+            # 而没有固定 width/height 时由 CSS 撑满；一旦 svg 自带固定尺寸，
+            # Chrome 就按那个尺寸画，画布 256 上只剩左上角一个小点。
+            # 所以先拼一个 HTML，去掉 svg 上的固定尺寸、用 CSS 撑满画布。
             $inline = (Get-Content $svg -Raw) `
                 -replace '(?s)<!--.*?-->', '' `
                 -replace '<svg([^>]*?)\swidth="[^"]*"', '<svg$1' `

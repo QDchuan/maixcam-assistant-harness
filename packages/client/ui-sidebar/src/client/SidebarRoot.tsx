@@ -19,46 +19,13 @@
 import { useEffect, useRef, useState } from 'react'
 import clsx from 'clsx'
 import {
-  IconNewChatOutline16, IconPanelLeftOutline16, Tooltip,
+  FishLogo, IconNewChatOutline16, IconPanelLeftOutline16, Tooltip,
 } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { InjectFace, PropsRenderSlots, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import type {
   SidebarPanelMetadata, SidebarRootComponentProps, SidebarRootInjected, SidebarSectionOwnerProps,
 } from './contract/slots.ts'
 import css from './SidebarRoot.module.css'
-
-/**
- * MaixCAM 品牌标记：一枚摄像头模组 —— 圆角机身、镜头、一颗指示灯。
- *
- * 这是本项目对上游源码的第一处改动。外壳的品牌回退原本是 DeepSeek 的鱼形标志，
- * 换成 MaixCAM 的标记之后，侧栏与折叠轨道就都成了这个应用自己的品牌 ——
- * 而这条路径**不需要** fork 整个前端：回退本身就是一个普通的渲染分支。
- *
- * 用 `currentColor` 绘制，所以它自动跟随明暗主题，不需要任何主题令牌。
- * @param props - 宿主给的几何信息。
- * @param props.size - 请求的方形边长（像素）。
- * @returns 品牌标记元素。
- */
-function MaixCamMark({ size }: { size: number }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <rect
-        x="2.6" y="2.6" width="18.8" height="18.8" rx="5.4"
-        stroke="currentColor" strokeWidth="1.5" opacity="0.5"
-      />
-      <circle cx="12" cy="12.4" r="5.1" stroke="currentColor" strokeWidth="1.5" />
-      <circle cx="12" cy="12.4" r="2" fill="currentColor" />
-      <circle cx="16.9" cy="7.2" r="1.05" fill="currentColor" opacity="0.7" />
-    </svg>
-  )
-}
 
 /** Wide-content unmount delay; matches the 150ms wide-content fade-out. */
 const COLLAPSE_SETTLE_MS = 150
@@ -222,7 +189,7 @@ export function SidebarRoot({
           >
             <span className={css.brandIdentity} aria-hidden="true">
               <span className={css.brandMark}>
-                {renderSlot('sidebar.brand.mark', { size: 24 }, { fallback: <MaixCamMark size={24} /> })}
+                {renderSlot('sidebar.brand.mark', { size: 24 }, { fallback: <FishLogo size={24} /> })}
               </span>
               <span className={css.brandName}>
                 {renderSlot('sidebar.brand.name', {}, {
@@ -250,7 +217,7 @@ export function SidebarRoot({
           >
             {!wide && (
               <span className={css.railMark} aria-hidden="true">
-                {renderSlot('sidebar.brand.mark', { size: 24 }, { fallback: <MaixCamMark size={24} /> })}
+                {renderSlot('sidebar.brand.mark', { size: 24 }, { fallback: <FishLogo size={24} /> })}
               </span>
             )}
             {/* Rail icons render at 18 (figma rail spec); expanded keeps the glyph-native sizes. */}

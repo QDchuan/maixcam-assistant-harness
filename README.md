@@ -147,14 +147,7 @@ pnpm run build:web          # 只改了 index.html / 静态资源
 `c291e79` 构建。上游原始说明保留在 [`README.upstream.md`](./README.upstream.md)
 与 [`README.upstream.zh.md`](./README.upstream.zh.md)。
 
-**许可是分开的两半** —— 这一条不是选择，是 MIT 本身的要求：
-
-| | 范围 | 许可 |
-| --- | --- | --- |
-| [`LICENSE`](./LICENSE) | **本仓库新增的部分**：`maixcam/`、本 README、背景插画与图标、主题层 `maixcam.css` | **Unlicense（公有领域，无任何限制）** |
-| [`LICENSE.upstream`](./LICENSE.upstream) | 从 DeepSeek Harness 继承的源码，以及**对上游文件的修改**（修改件是衍生作品） | **MIT** |
-
-一句话：**我们写的是公有领域，别人写的是 MIT。** 用的时候两边都看一眼。
 
 第三方声明见 [`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md)。
-本仓库为私有仓库，且**当前是无历史的快照**（见上）。
+本仓库为私有仓库，且**当前是无历史的快照**（见「上游与许可」上方那段）。
+许可为 **MIT**，见 [`LICENSE`](./LICENSE)；第三方声明见 [`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md)。
