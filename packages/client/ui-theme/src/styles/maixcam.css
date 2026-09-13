@@ -84,10 +84,10 @@ body[data-ds-dark-theme] {
 body,
 body[data-ds-dark-theme] {
   /* 表面：半透明深色，让底部网格透出来 */
-  --dsw-alias-bg-base: rgba(7, 11, 16, 0.52);
-  --dsw-alias-bg-layer-1: rgba(11, 17, 23, 0.58);
-  --dsw-alias-bg-layer-2: rgba(16, 26, 34, 0.68);
-  --dsw-alias-bg-layer-3: rgba(22, 35, 44, 0.78);
+  --dsw-alias-bg-base: rgba(7, 11, 16, 0.38);
+  --dsw-alias-bg-layer-1: rgba(11, 17, 23, 0.44);
+  --dsw-alias-bg-layer-2: rgba(16, 26, 34, 0.54);
+  --dsw-alias-bg-layer-3: rgba(22, 35, 44, 0.66);
   --dsw-alias-bg-overlay: rgba(10, 16, 22, 0.88);
   --dsw-alias-bg-module-platform: rgba(0, 229, 255, 0.06);
   --dsw-alias-bg-multi-select: rgba(0, 229, 255, 0.1);
@@ -187,7 +187,7 @@ body::before {
   background: url('/bg.jpg') center / cover no-repeat;
   /* 不做虚化 —— 糊了就认不出画的是什么。只压一点亮度，让上面的字仍读得清。 */
   /* 不压亮度 —— 压了就不清晰。压暗交给下面那层压层去做。 */
-  filter: brightness(1.02) saturate(1.06) contrast(1.02);
+  filter: brightness(1.16) saturate(1.10) contrast(1.02);
   transform-origin: 50% 50%;
   animation: maixcam-bg-drift 72s ease-in-out infinite;
   pointer-events: none;
@@ -202,9 +202,9 @@ body::after {
   /* 压层改成中间几乎不压、四边压 —— 画面主体清楚，文字所在的面板自己有底色。
      之前是均匀压 0.40~0.66，整张画都被蒙了一层灰。 */
   background:
-    radial-gradient(140% 120% at 50% 38%, rgba(4, 8, 12, 0) 28%, rgba(4, 8, 12, 0.44) 100%),
+    radial-gradient(150% 130% at 50% 36%, rgba(4, 8, 12, 0) 34%, rgba(4, 8, 12, 0.34) 100%),
     radial-gradient(900px 520px at 20% 0%, rgba(0, 229, 255, 0.10), transparent 60%),
-    linear-gradient(180deg, rgba(4, 8, 12, 0.16) 0%, rgba(4, 8, 12, 0.24) 55%, rgba(4, 8, 12, 0.36) 100%);
+    linear-gradient(180deg, rgba(4, 8, 12, 0.06) 0%, rgba(4, 8, 12, 0.12) 55%, rgba(4, 8, 12, 0.22) 100%);
   pointer-events: none;
 }
 
