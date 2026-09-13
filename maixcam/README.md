@@ -187,3 +187,21 @@ preset 里 `skill-filesystem` 的 `customSkillDirs` 已指向这个目录，**�
 空结果会被模型读成「知识库里没有」，然后继续凭记忆回答 —— 那正是这个项目要治的病。
 所以检索不可用时抛「知识库不可用：<原因>」。
 
+
+---
+
+## 装到别人的机器上
+
+```
+setup.cmd                  ← 双击这个（根目录）
+maixcam\install.ps1        安装逻辑：检查环境 / 装依赖 / 构建 / 建 home / 建快捷方式
+maixcam\launch.vbs         快捷方式实际执行的东西（无窗口启动）
+maixcam\maixcam.ico        图标，安装时从 apps/web/public/favicon.svg 自动生成
+maixcam\start.cmd          前台启动，带控制台窗口，调试时用
+```
+
+`install.ps1` 支持 `-SkipBuild`（已构建过）与 `-ShortcutsOnly`（只重建快捷方式）。
+
+**图标是怎么来的**：用无头 Chrome/Edge 把 `favicon.svg` 渲染成 256×256 PNG，
+再套一层 ICO 容器（ICO 允许直接内嵌 PNG，Vista 以后都支持）。
+所以改 favicon 之后删掉 `maixcam.ico` 重跑安装，图标就跟着换。

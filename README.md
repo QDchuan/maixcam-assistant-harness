@@ -26,10 +26,18 @@
 - 交付代码前，整段过一遍 `check_api_usage`（机器判，不是模型说了算）；
 - 查不到就直说「本地知识库里没有这部分」，**不用看起来合理的代码把空白填上**。
 
-## 跑起来
+## 装 & 跑
+
+**最终用户**：双击仓库根目录的 **`setup.cmd`**。
+
+它会检查 Node / pnpm → 装依赖 → 构建 → 建应用自己的 home → **在桌面和开始菜单各放一个
+「MaixCAM 开发助手」**。装完双击那个图标就行（它会自动开浏览器，**不留控制台窗口**）。
+可以重复运行，每一步都先检查再动手。
+
+**已经装过、只想换端口或看日志**：
 
 ```bat
-maixcam\start.cmd          :: 起在 8890，并自动打开浏览器
+maixcam\start.cmd          :: 前台启动，留一个控制台窗口，能看到日志
 maixcam\start.cmd 9001     :: 换端口
 ```
 
@@ -43,7 +51,18 @@ set DSH_HOME=C:\Users\chuan\.dsh-maixcam
 node apps/cli/lib/bin.js --profile maixcam --patch maixcam\app.patch.yml --port 8890
 ```
 
-> **每次启动 token 都会变，旧 URL 会失效。** 用 `start.cmd`，别存 URL。
+> **每次启动 token 都会变，旧 URL 会失效。** 用桌面那个快捷方式，别存 URL。
+
+### 安装脚本踩过的两个编码坑
+
+Windows 上这类脚本很容易「看起来写对了但跑不起来」，两个都是编码：
+
+1. **`.ps1` 会被 PowerShell 5.1 当成 ANSI 读。** `install.ps1` 里有中文，没 BOM 的话
+   中文全变乱码，字符串被截断，报的却是「语法错误」—— 找半天找不到。**存成 UTF-8 with BOM**；
+   `setup.cmd` 里也优先调 `pwsh`（PowerShell 7 默认按 UTF-8 读）。
+2. **`.vbs` 被 WScript 按 ANSI 读。** `launch.vbs` 的注释写成**纯 ASCII**，不留中文。
+
+（同样的坑在 `maixcam\start.cmd` 上也踩过：cmd.exe 用启动时的 ANSI 码页解析 `.cmd`。）
 
 ## 它由三块组成
 
