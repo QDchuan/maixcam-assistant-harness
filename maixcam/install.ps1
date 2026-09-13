@@ -29,7 +29,7 @@ function Head([string]$msg) { Write-Host ''; Write-Host "== $msg" -ForegroundCol
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path   # <根>\maixcam
 $AppRoot   = Split-Path -Parent $ScriptDir                     # <根>
 $Home_     = Join-Path $env:USERPROFILE '.dsh-maixcam'
-$Launcher  = Join-Path $ScriptDir 'launch.vbs'
+$Launcher  = Join-Path $ScriptDir 'launch.ps1'
 $IconHash  = (Get-FileHash (Join-Path $AppRoot 'apps\web\public\favicon.svg') -Algorithm SHA256).Hash.Substring(0,8).ToLower()
 $Icon      = Join-Path $ScriptDir "maixcam-$IconHash.ico"
 $Entry     = Join-Path $AppRoot 'apps\cli\lib\bin.js'
@@ -180,8 +180,9 @@ $inline
     Say 'maixcam.ico 已存在'
 }
 
-# 4b. 快捷方式。目标指向 wscript.exe + launch.vbs，这样双击不留控制台窗口。
-$wscript = Join-Path $env:SystemRoot 'System32\wscript.exe'
+# 4b. 快捷方式。目标指向 pwsh + launch.ps1，并由 launch.ps1 自己决定「该不该启动」——
+#     这里不用 VBS：要查端口、读日志、等就绪，VBS 干这些很别扭。
+$psExe = if (Get-Command pwsh -ErrorAction SilentlyContinue) { (Get-Command pwsh).Source } else { Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe' }
 $targets = @(
     (Join-Path ([Environment]::GetFolderPath('Desktop')) "$AppName.lnk"),
     (Join-Path ([Environment]::GetFolderPath('Programs')) "$AppName.lnk")
@@ -192,8 +193,8 @@ foreach ($lnk in $targets) {
     $dir = Split-Path -Parent $lnk
     if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
     $sc = $shell.CreateShortcut($lnk)
-    $sc.TargetPath       = $wscript
-    $sc.Arguments        = '"' + $Launcher + '"'
+    $sc.TargetPath       = $psExe
+    $sc.Arguments        = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $Launcher + '"'
     $sc.WorkingDirectory = $AppRoot
     $sc.Description      = "$AppName —— 本地 MaixPy 知识库助手"
     if (Test-Path $Icon) { $sc.IconLocation = "$Icon,0" }
